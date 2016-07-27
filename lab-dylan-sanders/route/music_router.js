@@ -7,7 +7,6 @@ const AppError = require('../lib/AppError');
 const musicRouter = module.exports = exports = Router();
 const music = {};
 
-
 musicRouter.get('/:id', (req, res) => {
   let song = music[req.params.id];
   // Need test and error here
@@ -27,5 +26,21 @@ musicRouter.post('/', (req, res) => {
     let song = new Music(req.body.artist, req.body.song);
     music[song.id] = song;
     return res.json(song);
+  } else {
+    res.sendError(new AppError(400, 'Bad request'));
   }
+});
+
+musicRouter.delete('/:id', (req, res, next) => {
+  let songId = music[req.params.id];
+  if (songId) {
+    res.json(songId);
+    delete music[songId];
+  } else {
+    next(new AppError(400, 'Error, not found'));
+  }
+});
+
+musicRouter.use((err, req, res, next) => {
+  res.statusCode(err.statusCode || 500).send(err.message);
 });
