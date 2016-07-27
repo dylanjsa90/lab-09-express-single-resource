@@ -1,16 +1,21 @@
 'use strict';
 
-const Router = require('express').Router;
+const express = require('express');
+const musicRouter = express.Router();
 const Music = require('../model/Music');
 const AppError = require('../lib/AppError');
-
-const musicRouter = module.exports = exports = Router();
+const sendError = require('../lib/error_response');
+const bodyParser = require('body-parser');
+const debug = require('debug');
+const serverErrLog = debug('server:error');
+const serverLog = debug('server:log');
 const music = {};
+const jsonParser = bodyParser.json();
 
 musicRouter.get('/:id', (req, res) => {
   let song = music[req.params.id];
   // Need test and error here
-  return res.json(song);
+  res.send(song);
 });
 
 
@@ -21,14 +26,28 @@ musicRouter.get('/all', (req, res) => {
   res.json(musicCollection);
 });
 
-musicRouter.post('/', (req, res) => {
+musicRouter.post('/', jsonParser, (req, res) => {
   if(req.body.artist && req.body.song) {
     let song = new Music(req.body.artist, req.body.song);
     music[song.id] = song;
-    return res.json(song);
+    res.json(song);
   } else {
-    res.sendError(new AppError(400, 'Bad request'));
+    sendError(res.sendError(new AppError(400, 'Bad request')));
   }
+});
+
+musicRouter.post('/:id', jsonParser, (req, res, next) => {
+  serverLog(req.body);
+  if (music[req.body.id]) {
+
+    res.send('from the body parser\n');
+  }
+});
+
+musicRouter.use((err, req, res, next) => {
+  let error = new AppError(err.message, err.statusCode, err.responseMessage);
+  sendError(res.sendError(error));
+  serverErrLog(err.error.message);
 });
 
 musicRouter.delete('/:id', (req, res, next) => {
@@ -41,6 +60,4 @@ musicRouter.delete('/:id', (req, res, next) => {
   }
 });
 
-musicRouter.use((err, req, res, next) => {
-  res.statusCode(err.statusCode || 500).send(err.message);
-});
+module.exports = musicRouter;

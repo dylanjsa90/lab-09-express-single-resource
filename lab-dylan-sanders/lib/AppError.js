@@ -1,16 +1,12 @@
 'use strict';
 
-let AppError = module.exports = exports = function(message, statusCode, response) {
+let AppError = module.exports = exports = function(error, statusCode, message) {
+  this.error = error;
   this.message = message;
   this.statusCode = statusCode;
-  this.responseMessage = response;
 };
 
-AppError.check = function(error) {
-  return error instanceof AppError;
-};
-
-AppError.message = function() {
+AppError.prototype.message = function() {
   if (this.statusCode === 400) {
     return 'bad request';
   } else if (this.statusCode === 404) {
