@@ -5,10 +5,13 @@ const musicRouter = express.Router();
 const Music = require('../model/Music');
 const AppError = require('../lib/AppError');
 const jsonParser = require('body-parser').json();
+const debug = require('debug');
+const serverLog = debug('serverLog');
 
 const music = {};
 
 musicRouter.get('/:id', (req, res) => {
+  serverLog('get music id ' + req.params.id)
   let song = music[req.params.id];
   if (!song) return res.sendError(AppError.notFound());
   return res.status(200).send(song);
@@ -16,6 +19,7 @@ musicRouter.get('/:id', (req, res) => {
 
 
 musicRouter.get('/all', (req, res) => {
+  serverLog('get all' + music);
   let musicCollection = Object.keys(music).map((id) => {
     return music[id];
   });
@@ -23,6 +27,7 @@ musicRouter.get('/all', (req, res) => {
 });
 
 musicRouter.post('/', jsonParser, (req, res) => {
+  serverLog('post' + req.body);
   if(req.body.artist && req.body.song) {
     let song = new Music(req.body.artist, req.body.song);
     music[song.id] = song;
@@ -33,6 +38,7 @@ musicRouter.post('/', jsonParser, (req, res) => {
 });
 
 musicRouter.put('/:id', jsonParser, (req, res) => {
+  serverLog('PUT id: ' + req.params.id + ' updated data ' + req.body);
   if (!req.body.song && !req.body.artist) return res.sendError(AppError.badRequest());
   if (!music[req.params.id]) return res.sendError(AppError.notFound());
   music[req.params.id].song = req.body.song;
@@ -41,6 +47,7 @@ musicRouter.put('/:id', jsonParser, (req, res) => {
 });
 
 musicRouter.delete('/:id', (req, res) => {
+  serverLog('delete with id: ' + req.params.id);
   let songId = music[req.params.id];
   if (!songId) {
     return res.sendError(AppError.notFound());
