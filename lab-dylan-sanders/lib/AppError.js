@@ -1,28 +1,23 @@
 'use strict';
 
-let AppError = module.exports = exports = function(error, statusCode, message) {
-  this.error = error;
+let AppError = module.exports = exports = function(message, statusCode, responseMessage) {
   this.message = message;
-  this.statusCode = statusCode;
+  this.statusCode  = statusCode;
+  this.responseMessage = responseMessage;
 };
 
-AppError.prototype.message = function() {
-  if (this.statusCode === 400) {
-    return 'bad request';
-  } else if (this.statusCode === 404) {
-    return 'Error, not found';
-  } else {
-    return 'Internal server error';
-  }
+AppError.badRequest = function() {
+  return new AppError('Bad Request', 400, 'Bad Request');
 };
 
-// let appError = module.exports = exports = function(err, statusCode, message) {
-//   return Object.create({err, statusCode, message});
-// };
+AppError.notFound = function() {
+  return new AppError('Not Found', 404, 'Page Not Found');
+};
 
+AppError.serverError = function() {
+  return new AppError('Server Error', 500, 'Internal Server Error');
+};
 
-// let appError = module.exports = exports = function(statusCode, message, errCb) {
-//   return function(error) {
-//     errCb({error, statusCode, message, type: 'AppError'});
-//   };
-// };
+AppError.isAppError = function(err) {
+  return err instanceof AppError;
+};

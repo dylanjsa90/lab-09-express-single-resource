@@ -4,18 +4,14 @@ const express = require('express');
 const musicRouter = express.Router();
 const Music = require('../model/Music');
 const AppError = require('../lib/AppError');
-const sendError = require('../lib/error_response');
-const bodyParser = require('body-parser');
-const debug = require('debug');
-const serverErrLog = debug('server:error');
-const serverLog = debug('server:log');
+const jsonParser = require('body-parser').json();
+
 const music = {};
-const jsonParser = bodyParser.json();
 
 musicRouter.get('/:id', (req, res) => {
   let song = music[req.params.id];
-  // Need test and error here
-  res.send(song);
+  if (!song) return res.sendError(AppError.notFound());
+  return res.status(200).send(song);
 });
 
 
@@ -23,40 +19,34 @@ musicRouter.get('/all', (req, res) => {
   let musicCollection = Object.keys(music).map((id) => {
     return music[id];
   });
-  res.json(musicCollection);
+  res.status(200).json(musicCollection);
 });
 
 musicRouter.post('/', jsonParser, (req, res) => {
   if(req.body.artist && req.body.song) {
     let song = new Music(req.body.artist, req.body.song);
     music[song.id] = song;
-    res.json(song);
+    return res.status(200).json(music[song.id]);
   } else {
-    sendError(res.sendError(new AppError(400, 'Bad request')));
+    return res.sendError(res.sendError(AppError.badRequest()));
   }
 });
 
-musicRouter.post('/:id', jsonParser, (req, res, next) => {
-  serverLog(req.body);
-  if (music[req.body.id]) {
-
-    res.send('from the body parser\n');
-  }
-});
-
-musicRouter.use((err, req, res, next) => {
-  let error = new AppError(err.message, err.statusCode, err.responseMessage);
-  sendError(res.sendError(error));
-  serverErrLog(err.error.message);
+musicRouter.put('/:id', jsonParser, (req, res, next) => {
+  if (!req.body.song && !req.body.artist) return res.sendError(AppError.badRequest());
+  if (!music[req.params.id]) return res.sendError(AppError.notFound());
+  music[req.params.id].song = req.body.song;
+  music[req.params.id].artist = req.body.artist;
+  return res.status(200).json(music[req.params.id]);
 });
 
 musicRouter.delete('/:id', (req, res, next) => {
   let songId = music[req.params.id];
-  if (songId) {
-    res.json(songId);
-    delete music[songId];
+  if (!songId) {
+    return res.sendError(AppError.notFound());
   } else {
-    next(new AppError(400, 'Error, not found'));
+    delete music[songId];
+    return res.status(200).json({msg: 'successful deletion'});
   }
 });
 

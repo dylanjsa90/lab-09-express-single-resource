@@ -21,7 +21,9 @@ gulp.task('nodemon', () => {
             tasks: ['lint:all', 'mocha'] })
             .on('restart', () => {
               console.log('restarted');
-            });
+            })
+            .on('start', () => console.log('nodemon: server up'))
+            .on('quit', () => console.log('nodemon: server down'));
 });
 gulp.task('mocha', () => {
   gulp.src(testFiles)
