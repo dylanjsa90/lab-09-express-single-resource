@@ -1,3 +1,4 @@
+/*eslint no-unused-vars: ["error", { "args": "none" }]*/
 'use strict';
 const chai = require('chai');
 const chaiHttp = require('chai-http');

@@ -1,7 +1,7 @@
 const uuid = require('node-uuid');
 
-module.exports = exports = function Music(data) {
+module.exports = exports = function Music(artist, song) {
   this.id = uuid.v1();
-  this.artist = data.artist;
-  this.song = data.song;
+  this.artist = artist;
+  this.song = song;
 };
