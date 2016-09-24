@@ -32,7 +32,7 @@ musicRouter.post('/', jsonParser, (req, res) => {
   }
 });
 
-musicRouter.put('/:id', jsonParser, (req, res, next) => {
+musicRouter.put('/:id', jsonParser, (req, res) => {
   if (!req.body.song && !req.body.artist) return res.sendError(AppError.badRequest());
   if (!music[req.params.id]) return res.sendError(AppError.notFound());
   music[req.params.id].song = req.body.song;
@@ -40,7 +40,7 @@ musicRouter.put('/:id', jsonParser, (req, res, next) => {
   return res.status(200).json(music[req.params.id]);
 });
 
-musicRouter.delete('/:id', (req, res, next) => {
+musicRouter.delete('/:id', (req, res) => {
   let songId = music[req.params.id];
   if (!songId) {
     return res.sendError(AppError.notFound());
